@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle Financeiro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f6f8;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-section, .filter-section, .table-section, .chart-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #0077cc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Controle Financeiro</h1>
+
+    <div class="form-section">
+        <h2>Adicionar Lançamento</h2>
+        <label for="tipo">Tipo:</label>
+        <select id="tipo">
+            <option value="Despesa">Despesa</option>
+            <option value="Receita">Receita</option>
+        </select>
+
+        <label for="categoria">Categoria:</label>
+        <select id="categoria">
+            <option value="Fixo">Fixo</option>
+            <option value="Variável">Variável</option>
+        </select>
+
+        <label for="categoriaFixa">Categoria Fixa:</label>
+        <select id="categoriaFixa">
+            <option value="Educação">Educação</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Alimentação">Alimentação</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Moradia">Moradia</option>
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Pets">Pets</option>
+            <option value="Outros">Outros</option>
+        </select>
+
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao">
+
+        <label for="valor">Valor:</label>
+        <input type="number" id="valor">
+
+        <label for="mes">Mês:</label>
+        <select id="mes">
+            <option value="Janeiro">Janeiro</option>
+            <option value="Fevereiro">Fevereiro</option>
+            <option value="Março">Março</option>
+            <option value="Abril">Abril</option>
+            <option value="Maio">Maio</option>
+            <option value="Junho">Junho</option>
+            <option value="Julho">Julho</option>
+            <option value="Agosto">Agosto</option>
+            <option value="Setembro">Setembro</option>
+            <option value="Outubro">Outubro</option>
+            <option value="Novembro">Novembro</option>
+            <option value="Dezembro">Dezembro</option>
+        </select>
+
+        <label for="ano">Ano:</label>
+        <input type="number" id="ano" value="2024">
+
+        <button onclick="adicionarLancamento()">Adicionar</button>
+    </div>
+
+    <div class="filter-section">
+        <h2>Filtrar por Categoria Fixa</h2>
+        <select id="filtroCategoriaFixa" onchange="filtrarLancamentos()">
+            <option value="Todos">Todos</option>
+            <option value="Educação">Educação</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Alimentação">Alimentação</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Moradia">Moradia</option>
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Pets">Pets</option>
+            <option value="Outros">Outros</option>
+        </select>
+    </div>
+
+    <div class="table-section">
+        <h2>Lançamentos</h2>
+        <table id="tabelaLancamentos">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Categoria</th>
+                    <th>Categoria Fixa</th>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Mês</th>
+                    <th>Ano</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="chart-section">
+        <h2>Gráfico por Categoria Fixa</h2>
+        <canvas id="graficoCategoriaFixa" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        let lancamentos = [];
+
+        function adicionarLancamento() {
+            const tipo = document.getElementById('tipo').value;
+            const categoria = document.getElementById('categoria').value;
+            const categoriaFixa = document.getElementById('categoriaFixa').value;
+            const descricao = document.getElementById('descricao').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const mes = document.getElementById('mes').value;
+            const ano = document.getElementById('ano').value;
+
+            if (!descricao || isNaN(valor) || !ano) {
+                alert("Preencha todos os campos corretamente.");
+                return;
+            }
+
+            lancamentos.push({ tipo, categoria, categoriaFixa, descricao, valor, mes, ano });
+            document.getElementById('descricao').value = '';
+            document.getElementById('valor').value = '';
+            document.getElementById('ano').value = '2024';
+
+            atualizarTabela();
+            atualizarGrafico();
+        }
+
+        function atualizarTabela() {
+            const filtro = document.getElementById('filtroCategoriaFixa').value;
+            const tbody = document.getElementById('tabelaLancamentos').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            const filtrados = filtro === 'Todos' ? lancamentos : lancamentos.filter(l => l.categoriaFixa === filtro);
+
+            filtrados.forEach(l => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = l.tipo;
+                row.insertCell(1).textContent = l.categoria;
+                row.insertCell(2).textContent = l.categoriaFixa;
+                row.insertCell(3).textContent = l.descricao;
+                row.insertCell(4).textContent = l.valor.toFixed(2);
+                row.insertCell(5).textContent = l.mes;
+                row.insertCell(6).textContent = l.ano;
+            });
+        }
+
+        function atualizarGrafico() {
+            const filtro = document.getElementById('filtroCategoriaFixa').value;
+            const filtrados = filtro === 'Todos' ? lancamentos : lancamentos.filter(l => l.categoriaFixa === filtro);
+
+            const categorias = {};
+            filtrados.forEach(l => {
+                if (l.tipo === 'Despesa') {
+                    categorias[l.categoriaFixa] = (categorias[l.categoriaFixa] || 0) + l.valor;
+                }
+            });
+
+            const ctx = document.getElementById('graficoCategoriaFixa').getContext('2d');
+            if (window.grafico) {
+                window.grafico.destroy();
+            }
+            window.grafico = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(categorias),
+                    datasets: [{
+                        label: 'Total por Categoria Fixa',
+                        data: Object.values(categorias),
+                        backgroundColor: 'rgba(0, 119, 204, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function filtrarLancamentos() {
+            atualizarTabela();
+            atualizarGrafico();
+        }
+    </script>
+</body>
+</html>
